@@ -8,7 +8,15 @@
 
 Diversification relies on assets *not* moving together — but correlation **spikes exactly in crises** (2008, 2020, 2022), precisely when diversification is needed most. The market prices this through **implied correlation**; this engine monitors it, validates it, and uses it as a systemic-risk signal.
 
-It bridges a master's thesis on equity-correlation regimes (which builds a *realized* Correlation Synchronicity Index) with the market's *implied* counterpart.
+## Link to my MSc thesis — from realized to implied correlation
+
+This repo is the **market bridge of my master's thesis**.
+
+- **The thesis (realized side).** I built a **Correlation Synchronicity Index (CSI)** from a *variance decomposition* of S&P 500 sector returns — modelled with **DCC-GARCH** and a **machine-learning classifier of dispersion regimes** — and identified a *shock-specific* correlation channel (a 2022 energy-shock difference-in-differences, replicated cross-market on STOXX 600). A key result: the CSI is **~89% orthogonal to the VIX** (corr ≈ 0.34) — it measures **correlation, not volatility**.
+- **The gap.** That index is **realized / backward-looking**. The market, however, *prices correlation forward* through the gap between index options and single-stock options.
+- **What this repo adds (implied side).** It brings in the market's **implied** correlation (CBOE `.COR`) and dispersion (`.DSPX`), and shows the two measures **co-move (ρ = +0.80)** — external *convergent validity* for the thesis construct — that implied correlation **leads** equity volatility, and that the signal is **tradable** (the dispersion fund below).
+
+**Correlation risk premium — and its honest limit.** The natural next step is "implied − realized = the correlation risk premium". But the two indices live on **different universes** (CBOE `.COR` = top-50 *single stocks*; my realized CSI = *sector* ETFs), so their **levels** are not comparable and a raw `implied − realized` spread would be a meaningless number. What *is* meaningful is that their **dynamics co-move (0.80)**; so the premium is treated as the **mark-to-market of a short implied-correlation position**, not a cross-universe spread (full detail in the [Honesty notes](#honesty-notes) and the dispersion-fund section). The corollary — **why naive short-correlation fails** (Sharpe ≈ 0: the secular decline in implied correlation is paid back in crash losses) — is exactly what the fund section demonstrates and fixes.
 
 ## Key results (2010–2026)
 
