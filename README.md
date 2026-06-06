@@ -50,6 +50,54 @@ It bridges a master's thesis on equity-correlation regimes (which builds a *real
 - Implied (top-50 single-stock) and realized (9-sector) correlations differ in universe and level — the comparison is on **dynamics**, not absolute level.
 - Overlay is daily long-only equity scaling. Research only — **not investment advice**.
 
+## Systematic dispersion fund — trading the correlation risk premium
+
+The monitor above *validates* the signal; this layer *trades* it. A dispersion book is
+structurally **short correlation** (short index vol / long the components): it earns a
+premium because index options are dear, but it blows up when correlation gaps to 1 in a
+crisis. The crown question: **can a regime detector neutralise that crash tail?**
+
+![Implied correlation with regimes](docs/assets/fund_implied_corr_regimes.png)
+
+We size a short implied-correlation position by its **richness** (z-score of COR3M — the
+thesis signal), and overlay a **walk-forward Gaussian HMM regime throttle** that cuts the
+book to zero in confirmed stress. (Because implied and realized correlation sit on
+different universes, we trade the implied-correlation index mark-to-market directly, not a
+cross-universe spread — see honesty notes.)
+
+### Result (out-of-sample 2013–2026, net of 5 bps/turnover, vol-targeted 10%)
+
+| Book | Sharpe | CAGR | Max DD | Calmar |
+|------|:------:|:----:|:------:|:------:|
+| Short-corr carry (flat) | +0.06 | +0.1% | −18.2% | +0.01 |
+| Signal-scaled (sell when rich) | +1.07 | +10.7% | −19.7% | +0.54 |
+| **Signal + regime throttle** | **+1.07** | +10.7% | **−12.4%** | **+0.86** |
+
+![Cumulative PnL](docs/assets/fund_cumulative_pnl.png)
+
+**Three findings:**
+1. **Naive short correlation is dead money** (Sharpe ≈ 0) — the secular decline in implied
+   correlation is paid back in crash losses.
+2. **Sizing by implied-correlation richness harvests a real premium** (Sharpe +1.07) — the
+   thesis signal, made tradable.
+3. **The HMM regime throttle removes the crash tail** — same Sharpe, but max drawdown
+   −19.7% → −12.4% and Calmar +0.54 → +0.86. In **every** studied crisis it flips the book
+   from losing to flat/positive:
+
+![The tail test](docs/assets/fund_tail_test.png)
+
+### Honesty notes
+
+- Implied (CBOE top-50 single-stock) and realized (9-sector) correlations differ in
+  universe and level — only their **dynamics** co-move (ρ = +0.80). So the trade is the
+  **mark-to-market of a short position in the implied-correlation index**, not a
+  cross-universe `implied − realized` premium (which would be a meaningless spread).
+- A transparent **research proxy** for a correlation/variance-swap dispersion book — full
+  single-name option surfaces aren't available daily over 2010–2026.
+- Research only, vol-normalised PnL — **not investment advice**.
+
+Run it: `python scripts/run_fund.py`.
+
 ## Repository structure
 
 ```
