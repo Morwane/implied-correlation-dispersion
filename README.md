@@ -1,6 +1,11 @@
-# Implied Correlation & Dispersion Engine
+# Correlation Risk Premium Engine
+### Implied vs realized equity correlation — risk monitor, short-correlation proxy, and a regime-throttled backtest
 
-> A monitor and signal engine for **equity correlation risk**, built on CBOE implied-correlation indices (`.COR1M/3M/6M`) and the Cboe Dispersion Index (`.DSPX`). It validates implied correlation against realized sector correlation, shows it **leads equity volatility**, and turns it into a defensive overlay. LSEG data, 2010–2026.
+> A monitor and signal engine for **equity correlation risk**, built on CBOE implied-correlation indices (`.COR1M/3M/6M`) and the Cboe Dispersion Index (`.DSPX`). It validates implied correlation against realized sector correlation, shows it **leads equity volatility**, and turns it into a short-correlation / dispersion proxy with an HMM regime throttle. LSEG data, 2010–2026.
+
+> ⚠️ **Honest scope (read this first).** Implied correlation (CBOE `.COR`, ~top-50 **single stocks**) and my realized measure (9 **sector ETFs**) sit on **different universes** — their *levels* are not comparable, only their *dynamics* co-move (ρ = +0.80). So the "trade" modelled here is the **mark-to-market of a short implied-correlation index position** — a transparent research proxy for a dispersion / variance-swap book — **not** a literal `implied − realized` spread (which would be a meaningless cross-universe number).
+
+**What's in this repo:** ① a correlation-risk **monitor** · ② a **short-correlation proxy** sized by the implied-correlation richness · ③ an HMM **regime-throttle backtest** · ④ explicit **tradability limits**.
 
 ![Implied vs realized](docs/assets/implied_vs_realized.png)
 
@@ -105,6 +110,16 @@ cross-universe spread — see honesty notes.)
 - Research only, vol-normalised PnL — **not investment advice**.
 
 Run it: `python scripts/run_fund.py`.
+
+## How a desk would actually trade this
+
+This repo trades a **proxy** (the implied-correlation index, mark-to-market). On a real equity-derivatives desk, the same view — *"index options are dear relative to single-stock options; sell correlation"* — is expressed as a **dispersion trade**:
+
+- **Variance-swap dispersion** — sell an index variance swap, buy a weighted basket of single-name variance swaps. The P&L ≈ `Σ wᵢ·σᵢ² − σ_index²`, i.e. you're **short implied correlation** directly. The cleanest expression, but OTC.
+- **Listed-option dispersion** — short an index straddle/strangle, long straddles on the largest constituents, **delta-hedged**. Captures the same premium with listed instruments; you carry vega and a gap-risk tail.
+- **Correlation swap** — a direct OTC bet on realized average pairwise correlation vs a strike; rare and illiquid.
+
+The **risk**: all of these are structurally short correlation, so they **lose when correlation gaps to 1 in a crash** (exactly the tail this repo's HMM throttle is built to cut). The **practical frictions** a proxy can't capture: bid/ask on dozens of single-name options, vega/gamma rebalancing costs, dividend and borrow risk, and basket-vs-index basis. That gap between this proxy and a live book is stated openly in *Honesty notes* and *Limitations* above.
 
 ## Repository structure
 
